@@ -1,4 +1,4 @@
-import { nanoid } from '@/lib/utils';
+/*import { nanoid } from '@/lib/utils';
 import { index, pgTable, text, varchar, vector } from 'drizzle-orm/pg-core';
 import { resources } from './resources';
 
@@ -21,4 +21,4 @@ export const embeddings = pgTable(
       table.embedding.op('vector_cosine_ops'),
     ),
   }),
-);
+);*/
