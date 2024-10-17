@@ -15,6 +15,13 @@
       "when": 1729094700660,
       "tag": "0001_orange_bruce_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1729098951280,
+      "tag": "0002_clammy_mentor",
+      "breakpoints": true
     }
   ]
 }

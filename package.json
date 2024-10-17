@@ -27,12 +27,15 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@ai-sdk/openai": "^0.0.67",
 		"@vercel/postgres": "^0.10.0",
+		"ai": "^3.4.12",
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.35.1",
 		"drizzle-zod": "^0.5.1",
 		"pg": "^8.13.0",
 		"pg-core": "^0.1.15",
+		"postgres": "^3.4.4",
 		"tailwind-merge": "^2.5.4",
 		"zod": "^3.23.8"
 	}

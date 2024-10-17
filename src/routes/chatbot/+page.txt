@@ -1,0 +1,185 @@
+<script lang="ts">
+    import { writable } from 'svelte/store';
+    import { onMount } from 'svelte';
+  
+    interface Message {
+      id: number;
+      role: string;
+      content: string;
+    }
+  
+    let messages = writable<Message[]>([]);
+    let input = writable('');
+  
+    function handleInputChange(event: Event) {
+      input.set((event.target as HTMLInputElement).value);
+    }
+  
+    async function handleSubmit(event: Event) {
+      event.preventDefault();
+  
+      const userMessage: Message = {
+        id: Date.now(),
+        role: 'user',
+        content: $input
+      };
+  
+      // Actualizamos los mensajes con el mensaje del usuario
+      messages.update(currentMessages => [...currentMessages, userMessage]);
+  
+      // Enviamos el mensaje al backend para obtener una respuesta
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: $messages }), // Enviamos los mensajes actuales
+      });
+  
+      // Procesamos la respuesta del servidor
+      if (response.ok) {
+        const data = await response.json();
+  
+        const systemMessage: Message = {
+          id: Date.now(),
+          role: 'system',
+          content: data.content, // Aquí colocamos la respuesta del servidor
+        };
+  
+        // Actualizamos los mensajes con la respuesta del sistema
+        messages.update(currentMessages => [...currentMessages, systemMessage]);
+      }
+  
+      // Limpiamos el input después de enviar el mensaje
+      input.set('');
+    }
+  
+    onMount(() => {
+      // Puedes cargar mensajes iniciales aquí si es necesario
+    });
+  </script>
+  
+  <div class="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+    <div class="space-y-4">
+      {#each $messages as m (m.id)}
+        <div class="whitespace-pre-wrap">
+          <div>
+            <div class="font-bold">{m.role}</div>
+            <p>
+              {#if m.content.length > 0}
+                {m.content}
+              {:else}
+                <span class="italic font-light">
+                  {toolInvocationMessage()}
+                </span>
+              {/if}
+            </p>
+          </div>
+        </div>
+      {/each}
+    </div>
+  
+    <form on:submit={handleSubmit}>
+      <input
+        class="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+        bind:value={$input}
+        placeholder="Say something..."
+        on:input={handleInputChange}
+      />
+    </form>
+  </div>
+  
+  
+  <style>
+  
+.flex {
+  display: flex;
+  flex-direction: column;
+}
+
+.max-w-md {
+  max-width: 28rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.py-24 {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+.stretch {
+  align-items: stretch;
+}
+
+.space-y-4 > * + * {
+  margin-top: 0.1rem;
+}
+
+/* Mensajes */
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+/* Input */
+.fixed {
+  position: fixed;
+}
+
+.bottom-0 {
+  bottom: 0;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-gray-300 {
+  border-color: #d1d5db;
+}
+
+.rounded {
+  border-radius: 0.375rem;
+}
+
+.shadow-xl {
+  box-shadow: 0 1.25rem 1.75rem rgba(0, 0, 0, 0.25), 0 0.3125rem 0.625rem rgba(0, 0, 0, 0.1);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-md {
+  max-width: 448px;
+}
+
+  </style>
+  
