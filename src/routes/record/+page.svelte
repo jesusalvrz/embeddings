@@ -1,0 +1,120 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+
+  let media: Blob[] = [];
+  let mediaRecorder: MediaRecorder | null = null;
+  let audioBlob: Blob | null = null;
+  let stream: MediaStream | null = null;
+  let transcription: string = '';
+
+  onMount(async () => {
+    await initializeStream();
+  });
+
+  async function initializeStream() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setupMediaRecorder();
+    } catch (error) {
+      console.error("Error al acceder al micrófono:", error);
+      alert("No se pudo acceder al micrófono. Por favor, verifica los permisos.");
+    }
+  }
+
+  function setupMediaRecorder() {
+    if (stream) {
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (e) => media.push(e.data);
+
+      mediaRecorder.onstop = () => {
+        const audio = document.querySelector('audio');
+        audioBlob = new Blob(media, { type: 'audio/ogg; codecs=opus' });
+        media = [];
+        if (audio && audioBlob) {
+          audio.src = URL.createObjectURL(audioBlob);
+        }
+      };
+    }
+  }
+
+  function startRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "recording") {
+      mediaRecorder.start();
+    } else {
+      console.warn("Ya se está grabando o el mediaRecorder no está inicializado.");
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+  }
+
+  async function transcribeAudio() {
+    if (audioBlob) {
+      const formData = new FormData();
+      formData.append('audio', new Blob([audioBlob]), 'recording.ogg'); // Cambia el nombre del archivo si es necesario
+
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        transcription = data.text; // Almacena la transcripción en la variable
+        console.log(transcription);
+      } else {
+        console.error("Transcription failed:", await response.json());
+      }
+    }
+  }
+
+  function newRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      stopRecording();
+    }
+    initializeStream();
+  }
+
+  async function generateAndPlayAudio() {
+    try {
+      const response = await fetch('/api/cartesia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transcription }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const audio = document.querySelector('audio');
+        if (audio) {
+          audio.src = data.audioUrl; // Asigna la URL del audio generado
+          audio.play(); // Reproduce el audio
+        }
+      } else {
+        console.error("Error generating audio:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error in generateAndPlayAudio:", error);
+    }
+  }
+</script>
+
+<section>
+  <audio controls></audio>
+  <button on:click={newRecording}>New Recording</button>
+  <button on:click={startRecording}>Record</button>
+  <button on:click={stopRecording}>Stop</button>
+  <button on:click={transcribeAudio}>Transcribe Recording</button>
+  <button on:click={generateAndPlayAudio}>Generate Audio</button> <!-- Botón para generar audio -->
+  {#if transcription}
+    <div>
+      <h3>Transcription:</h3>
+      <p>{transcription}</p>
+    </div>
+  {/if}
+</section>

@@ -1,4 +1,4 @@
-import { createResource } from '../../../lib/actions/resources';
+/*import { createResource } from '../../../lib/actions/resources';
 import { openai } from '@ai-sdk/openai';
 import { convertToCoreMessages, streamText, tool } from 'ai';
 import { z } from 'zod';
@@ -38,4 +38,4 @@ export async function POST(req: Request) {
   });
 
   return result.toDataStreamResponse();
-}
+}*/
