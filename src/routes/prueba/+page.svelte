@@ -6,7 +6,7 @@
     async function handleSubmit() {
         isLoading = true;
         try {
-            const res = await fetch('/api/chat', {
+            const res = await fetch('/api/groq', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

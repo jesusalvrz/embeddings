@@ -77,40 +77,14 @@
     }
     initializeStream();
   }
-
-  async function generateAndPlayAudio() {
-    try {
-      const response = await fetch('/api/cartesia', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ transcription }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const audio = document.querySelector('audio');
-        if (audio) {
-          audio.src = data.audioUrl; // Asigna la URL del audio generado
-          audio.play(); // Reproduce el audio
-        }
-      } else {
-        console.error("Error generating audio:", await response.json());
-      }
-    } catch (error) {
-      console.error("Error in generateAndPlayAudio:", error);
-    }
-  }
 </script>
 
 <section>
-  <audio controls></audio>
+  <!--<audio controls></audio>-->
   <button on:click={newRecording}>New Recording</button>
   <button on:click={startRecording}>Record</button>
   <button on:click={stopRecording}>Stop</button>
-  <button on:click={transcribeAudio}>Transcribe Recording</button>
-  <button on:click={generateAndPlayAudio}>Generate Audio</button> <!-- Botón para generar audio -->
+  <button on:click={transcribeAudio}>Transcribe Recording</button> <!-- Botón para transcribir -->
   {#if transcription}
     <div>
       <h3>Transcription:</h3>

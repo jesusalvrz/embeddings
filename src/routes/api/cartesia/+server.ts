@@ -1,7 +1,7 @@
 // src/routes/api/cartesia/+server.ts
 import Cartesia from "@cartesia/cartesia-js";
-import { json } from "@sveltejs/kit"; // Importa json para retornar respuesta en formato JSON
-import type { RequestEvent } from '@sveltejs/kit';
+import fs from "node:fs";
+import path from "path";
 
 // Verificar que `CARTESIA_API_KEY` esté configurada.
 if (!process.env.CARTESIA_API_KEY) {
@@ -12,6 +12,9 @@ if (!process.env.CARTESIA_API_KEY) {
 const client = new Cartesia({
   apiKey: process.env.CARTESIA_API_KEY,
 });
+
+// Ruta para guardar el archivo de audio generado.
+const outputFilePath = path.join(process.cwd(), "src", "routes", "api", "cartesia", "sonic.wav");
 
 // Crear una función asincrónica para hacer la llamada a la API y manejar la respuesta.
 export async function generateAudio(transcript: string) {
@@ -31,22 +34,9 @@ export async function generateAudio(transcript: string) {
       transcript,
     });
 
-    // Retornar el archivo de audio como un Blob
-    return new Blob([new Uint8Array(response)], { type: 'audio/wav' });
+    // Guardar `response` (de tipo ArrayBuffer) en un archivo.
+    fs.writeFileSync(outputFilePath, new Uint8Array(response));
   } catch (error) {
     console.error("Error generating audio:", error);
-    throw error; // Lanza el error para manejarlo en el frontend
-  }
-}
-
-export async function POST(event: RequestEvent) {
-  const { transcript } = await event.request.json(); // Obtén el texto de la solicitud
-
-  try {
-    const audioBlob = await generateAudio(transcript);
-    const audioUrl = URL.createObjectURL(audioBlob); // Crea una URL del Blob
-    return json({ audioUrl }); // Devuelve la URL del audio
-  } catch (error) {
-    return json({ error: "Error generating audio" }, { status: 500 });
   }
 }
